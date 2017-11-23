@@ -1,0 +1,23 @@
+{
+  "name": "flickr-cli",
+  "version": "1.0.0",
+  "description": "command line interface for flickr",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm run test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cfe84/flickr-cli.git"
+  },
+  "keywords": [
+    "flickr",
+    "cli"
+  ],
+  "author": "Charles Feval",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cfe84/flickr-cli/issues"
+  },
+  "homepage": "https://github.com/cfe84/flickr-cli#readme"
+}
