@@ -6,6 +6,9 @@
   "scripts": {
     "test": "mocha test"
   },
+  "bin": {
+    "flickr": "bin/flickr"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/cfe84/flickr-cli.git"
