@@ -1,6 +1,6 @@
 {
   "name": "flickr-cli",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "command line interface for flickr",
   "main": "index.js",
   "scripts": {
