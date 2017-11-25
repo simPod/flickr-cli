@@ -10,7 +10,6 @@ class Configuration {
 
         this.getToken = this.getToken.bind(this);
         this.setToken = this.setToken.bind(this);
-        this.getFlickrAuth = this.getFlickrAuth.bind(this);
     }
 
     setToken(token) {
