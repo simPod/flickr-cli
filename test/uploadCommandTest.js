@@ -15,4 +15,15 @@ describe("Upload command", () => {
             td.verify(flickr.upload(file));
         }
     });
+
+    it("should retry 5 times", async function () {
+        this.timeout(16000);
+        const flickr = td.object(["upload"]);
+        const file = "ljhkjh";
+        td.when(flickr.upload(file)).thenReject(Error("bla"));
+
+        await upload({files: [file]}, {}, flickr);
+
+        td.verify(flickr.upload(file), {times: 5});
+    });
 });
