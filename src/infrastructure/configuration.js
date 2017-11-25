@@ -1,11 +1,10 @@
-const localstorage = require('node-localstorage');
+const LocalStorage = require('node-localstorage').LocalStorage;
 const path = require("path");
 const homedir = require("homedir");
 
 class Configuration {
     constructor() {
         const storagePath = path.join(homedir(), ".flickrcli");
-        var LocalStorage = require('node-localstorage').LocalStorage;
         this.localStorage = new LocalStorage(storagePath);
 
         this.getToken = this.getToken.bind(this);

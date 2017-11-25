@@ -1,9 +1,9 @@
 const commandLineArgs = require('command-line-args');
 
 const optionDefinitions = [
-    { name: 'help', alias: 'h', type: Boolean },
-    { name: 'login', alias: 'l', type: Boolean },
-    { name: 'upload', alias: 'u', type: String, multiple: true },
+    { name: 'help', description: "Prints this message", alias: 'h', type: Boolean },
+    { name: 'login', description: "Initiate login process", alias: 'l', type: Boolean },
+    { name: 'upload', description: "Upload files", typeLabel: '[underline]{file} [file...]', alias: 'u', type: String, multiple: true },
     { name: 'addToAlbum', alias: "a", type: String, multiple: true}
 ];
 
@@ -28,6 +28,10 @@ class CommandLineParser
             this.parseLogin,
             this.parseUpload,
         ];
+    }
+
+    getOptions(){
+        return optionDefinitions;
     }
 
     makeRes(command, params){
@@ -57,9 +61,19 @@ class CommandLineParser
         }
     }
 
+    addDashIfMissing(argv) {
+        if (argv[2] && argv[2].length > 2 && !argv[2].startsWith("--")) {
+            argv[2] = "--" + argv[2];
+        }
+        return argv;
+    }
 
-    parse(argv)
+    parse(argv = process.argv)
     {
+        if (argv.length < 3) {
+            return this.makeRes(Commands.Unknown, { unknown: [""] });
+        }
+        argv = this.addDashIfMissing(argv);
         const options = { argv, partial: true };
         const args = commandLineArgs(optionDefinitions, options);
         for (const parser of this.parsers) {
