@@ -3,6 +3,10 @@ const { CommandLineParser, Commands } = require("../src/commandLineParser");
 
 describe("Command line parser", () => {
     const parser = new CommandLineParser();
+    it("should add -- to first argument if missing", () => {
+       const res = parser.parse("login");
+       should(res.command).equal(Commands.Login);
+    });
     it("should parse help", () => {
         for(const cmd of ["-h", "--help", "--help --login"]){
             const res = parser.parse(cmd);

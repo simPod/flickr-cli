@@ -1,14 +1,9 @@
-const Flickr = require("flickr-sdk");
-const path = require("path");
-
-const upload = async (params, config) => {
-    const auth = config.getFlickrAuth();
+const upload = async (params, config, flickr) => {
     for (const file of params.files) {
         process.stdout.write(`Uploading ${file} `);
         try {
-            const upload = new Flickr.Upload(auth, file, { title: file });
-            const res = await upload;
-            process.stdout.write(` OK - photoid: ${res.body.photoid._content}\n`);
+            const res = await flickr.upload(file);
+            process.stdout.write(` OK - photoid: ${res.photoid._content}\n`);
         }
         catch (error)
         {
