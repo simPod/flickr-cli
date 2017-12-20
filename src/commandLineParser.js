@@ -4,10 +4,12 @@ const optionDefinitions = [
     { name: 'help', description: "Prints this message", alias: 'h', type: Boolean },
     { name: 'login', description: "Initiate login process", alias: 'l', type: Boolean },
     { name: 'upload', description: "Upload files", typeLabel: '[underline]{file} [file...]', alias: 'u', type: String, multiple: true },
-    { name: 'addToAlbum', alias: "a", type: String, multiple: true}
+    { name: 'album', alias: "a", type: String, multiple: true },
+    { name: 'include', alias: "i", type: String, multiple: true}
 ];
 
 Commands = {
+    Album: "album",
     Help: "help",
     Login: "login",
     Upload: "upload",
@@ -19,11 +21,13 @@ class CommandLineParser
     constructor()
     {
         this.parse = this.parse.bind(this);
+        this.parseAlbum = this.parseAlbum.bind(this);
         this.parseHelp = this.parseHelp.bind(this);
         this.parseLogin = this.parseLogin.bind(this);
         this.parseUpload = this.parseUpload.bind(this);
         this.makeRes = this.makeRes.bind(this);
         this.parsers = [
+            this.parseAlbum,
             this.parseHelp,
             this.parseLogin,
             this.parseUpload,
@@ -58,6 +62,17 @@ class CommandLineParser
         if (args.upload) {
             const params = { files: args.upload, albums: args.addToAlbum };
             return this.makeRes(Commands.Upload, params);
+        }
+    }
+
+    parseAlbum(args) {
+        if (args.album) {
+            const include = args.include || [];
+            const params = {
+                command: args.album[0],
+                include
+            };
+            return this.makeRes(Commands.Album, params);
         }
     }
 

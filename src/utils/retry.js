@@ -15,10 +15,11 @@ const RetryPolicies = {
 
 class Retry {
 
-    constructor(retryCount = 5, initialTimeout = 1000, retryPolicy = retryPolicies.constant) {
+    constructor(retryCount = 5, initialTimeout = 1000, retryPolicy = retryPolicies.constant, logger = console) {
         this.retryCount = retryCount;
         this.retryPolicy = retryPolicy;
         this.initialTimeout = initialTimeout;
+        this.logger = logger;
 
         this.retry = this.retry.bind(this);
     }
@@ -31,11 +32,11 @@ class Retry {
                 const result = await asyncCallback();
                 return result;
             } catch(error) {
+                this.logger.error(error.message);
                 if (++i >= this.retryCount)
                     throw error;
-                console.error(error.message);
             }
-            console.log(`Retrying in ${timeout / 1000}s`);
+            this.logger.log(`Retrying in ${timeout / 1000}s`);
             await waitAsync(timeout);
             timeout = this.retryPolicy(timeout);
         }

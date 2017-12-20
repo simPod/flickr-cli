@@ -53,17 +53,29 @@ describe("Command line parser", () => {
 
     it("should parse upload album", () => {
         for(const cmd of [
-            ["-u", "123.png", "456.png", "--addToAlbum", "1231234", "456456"],
-            ["something", "something", "--upload", "123.png", "456.png", "-a", "1231234", "-a", "456456"]]){
+            ["-u", "123.png", "456.png", ],
+            ["something", "something", "--upload", "123.png", "456.png"]]){
             const res = parser.parse(makeArgv(cmd));
             should(res.command).equal(Commands.Upload);
             should(res.params.files).have.length(2);
             should(res.params.files).containEql("123.png");
             should(res.params.files).containEql("456.png");
-            should(res.params.albums).have.length(2);
-            should(res.params.albums).containEql("1231234");
-            should(res.params.albums).containEql("456456");
         }
+    });
+
+    context("for albums", () => {
+        it("should parse album list", () => {
+            const res = parser.parse(makeArgv(["album", "list"]));
+            should(res.command).equal(Commands.Album);
+            should(res.params.command).equal("list");
+            should(res.params.include).be.empty();
+        });
+        it("should parse includes for album list", () => {
+            const res = parser.parse(makeArgv(["album", "list", "--include", "title", "id"]));
+            should(res.command).equal(Commands.Album);
+            should(res.params.command).equal("list");
+            should(res.params.include).be.deepEqual(["title", "id"]);
+        });
     });
     
 });

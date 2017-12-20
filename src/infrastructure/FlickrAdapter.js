@@ -42,7 +42,7 @@ class FlickrAdapter
         const oauth = Flickr.OAuth(this.key, this.secret);
         const res = await oauth.request("http://localhost:3000/");
         const { oauth_token, oauth_token_secret } = res.body;
-        console.log(`Go to this URL and authorize the application: ${oauth.authorizeUrl(oauth_token, "write")}`);
+        this.configuration.logger.log(`Go to this URL and authorize the application: ${oauth.authorizeUrl(oauth_token, "write")}`);
         const verifier = await listenToAnswer();
         const verifyRes = await oauth.verify(oauth_token, verifier, oauth_token_secret);
         const token = verifyRes.body;
@@ -54,6 +54,22 @@ class FlickrAdapter
         const upload = new Flickr.Upload(auth, file, { title: file });
         const res = await upload;
         return res.body;
+    }
+
+    async listAlbums() {
+        const generateFieldFlattener = (field) => (entry) => {
+            entry[field] = entry[field]["_content"];
+            return entry;
+        };
+        const auth = this.getFlickrAuth();
+        const flickr = new Flickr(auth);
+        const res = await flickr.photosets.getList();
+        const list = res.body.photosets.photoset;
+        const flattenedList = list
+            .map(generateFieldFlattener("title"))
+            .map(generateFieldFlattener("description"));
+
+        return flattenedList;
     }
 }
 

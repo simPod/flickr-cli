@@ -1,7 +1,7 @@
-const unknown = async (args) => {
+const unknown = async (args, config) => {
     args.unknown.shift();
     args.unknown.shift();
-    console.log(`Unknown command: ${args.unknown}`)
+    config.logger.log(`Unknown command: ${args.unknown}`)
 };
 
 module.exports = unknown;

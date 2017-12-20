@@ -16,7 +16,7 @@ const help = async (args, config, flickr) => {
         }
     ];
     const message = usage(structure);
-    console.log(message);
+    config.logger.log(message);
 };
 
 module.exports = help;
