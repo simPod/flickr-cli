@@ -75,6 +75,14 @@ describe("Command line parser", () => {
             should(res.command).equal(Commands.Album);
             should(res.params.command).equal("list");
             should(res.params.include).be.deepEqual(["title", "id"]);
+            should(res.params.headers).be.true();
+        });
+        it("should parse headers for album list", () => {
+            const res = parser.parse(makeArgv(["album", "list", "--include", "title", "id", "--noheaders"]));
+            should(res.command).equal(Commands.Album);
+            should(res.params.command).equal("list");
+            should(res.params.include).be.deepEqual(["title", "id"]);
+            should(res.params.headers).be.false();
         });
     });
     

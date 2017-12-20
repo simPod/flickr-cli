@@ -4,8 +4,9 @@ const optionDefinitions = [
     { name: 'help', description: "Prints this message", alias: 'h', type: Boolean },
     { name: 'login', description: "Initiate login process", alias: 'l', type: Boolean },
     { name: 'upload', description: "Upload files", typeLabel: '[underline]{file} [file...]', alias: 'u', type: String, multiple: true },
-    { name: 'album', alias: "a", type: String, multiple: true },
-    { name: 'include', alias: "i", type: String, multiple: true}
+    { name: 'album', description: "CRUD for albums", alias: "a", type: String, multiple: true },
+    { name: 'include', alias: "i", type: String, multiple: true},
+    { name: 'noheaders', description: "Do not include headers in a list command", alias: "H", type: Boolean}
 ];
 
 Commands = {
@@ -70,7 +71,8 @@ class CommandLineParser
             const include = args.include || [];
             const params = {
                 command: args.album[0],
-                include
+                include,
+                headers: args.noheaders !== true // (we want a real bool, not a truthy indicator)
             };
             return this.makeRes(Commands.Album, params);
         }

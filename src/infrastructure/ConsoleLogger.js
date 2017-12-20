@@ -1,4 +1,7 @@
 class ConsoleLogger {
+    write(msg) {
+        process.stdout.write(msg);
+    }
     log(msg) {
         console.info(msg);
     }
