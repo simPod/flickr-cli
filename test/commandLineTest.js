@@ -22,11 +22,11 @@ describe("Command line parser", () => {
             should(res.command).equal(Commands.Help);
         }
     });
-    it('should return unknown when no params are given', () => {
+    it('should return Unknown when no params are given', () => {
         const res = parser.parse(makeArgv([]));
         should(res.command).equal(Commands.Unknown);
     });
-    it("should return unknown", () => {
+    it("should return Unknown", () => {
         const res = parser.parse(makeArgv(["--jkjkl"]));
         should(res.command).equal(Commands.Unknown);
         should(res.params.unknown).containEql("--jkjkl");

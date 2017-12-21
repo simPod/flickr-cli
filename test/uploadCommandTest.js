@@ -1,5 +1,5 @@
 const td = require("testdouble");
-const upload = require("../src/commands/upload");
+const Upload = require("../src/commands/Upload");
 
 describe("Upload command", () => {
     it("should upload all files in command line", async () => {
@@ -11,7 +11,8 @@ describe("Upload command", () => {
             td.when(flickr.upload(file)).thenResolve({photoid:{_content: 123}});
         }
 
-        await upload({files}, config, flickr);
+        const upload = new Upload(config, flickr);
+        await upload.exec({files});
 
         for(file of files) {
             td.verify(flickr.upload(file));
@@ -25,7 +26,8 @@ describe("Upload command", () => {
         const file = "ljhkjh";
         td.when(flickr.upload(file)).thenReject(Error("bla"));
 
-        await upload({files: [file]}, config, flickr);
+        const upload = new Upload(config, flickr);
+        await upload.exec({files: [file]});
 
         td.verify(flickr.upload(file), {times: 5});
         td.verify(config.logger.error(`Failed to upload ${file}: bla`));

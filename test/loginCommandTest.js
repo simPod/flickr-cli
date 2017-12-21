@@ -1,5 +1,5 @@
 const td = require("testdouble");
-const login = require("../src/commands/login");
+const Login = require("../src/commands/Login");
 
 describe("Login command", () => {
     it("should save token", async () => {
@@ -9,7 +9,8 @@ describe("Login command", () => {
 
         flickr = { login: () => Promise.resolve(token) };
 
-        await login({}, config, flickr);
+        const login = new Login(config, flickr);
+        await login.exec({});
 
         td.verify(config.setToken(token))
     });

@@ -14,7 +14,7 @@ Commands = {
     Help: "help",
     Login: "login",
     Upload: "upload",
-    Unknown: "unknown"
+    Unknown: "Unknown"
 };
 
 class CommandLineParser

@@ -1,8 +1,8 @@
 const td = require("testdouble");
-const album = require("../src/commands/album");
+const Album = require("../src/commands/Album");
 
 describe("Album command", () => {
-    it("should list albums with title by default", async () => {
+    it("should index albums with title by default", async () => {
         const albums = [
             { title: "test", id: "123123" },
             { title: "second", id: "456456"}
@@ -11,8 +11,8 @@ describe("Album command", () => {
             listAlbums: async () => albums
         };
         const config = { logger : td.object(["log"]) };
-
-        await album({ command: "list" }, config, flickr);
+        const album = new Album(config, flickr);
+        await album.exec({ command: "list" });
 
         for(let album of albums) {
             td.verify(config.logger.log(album.title));
@@ -29,7 +29,8 @@ describe("Album command", () => {
         };
         const config = { logger : td.object(["log"]) };
 
-        await album({ command: "list", include: ["title", "id"] }, config, flickr);
+        const album = new Album(config, flickr);
+        await album.exec({ command: "list", include: ["title", "id"] });
 
         for(let album of albums) {
             td.verify(config.logger.log(`${album.title}\t${album.id}`));
@@ -46,7 +47,8 @@ describe("Album command", () => {
         };
         const config = { logger : td.object(["log"]) };
 
-        await album({ command: "list", include: ["*"] }, config, flickr);
+        const album = new Album(config, flickr);
+        await album.exec({ command: "list", include: ["*"] });
 
         td.verify(config.logger.log("title\tid"), {times: 0});
         for(let album of albums) {
@@ -64,7 +66,8 @@ describe("Album command", () => {
         };
         const config = { logger : td.object(["log"]) };
 
-        await album({ command: "list", include: ["title", "id"], headers: true }, config, flickr);
+        const album = new Album(config, flickr);
+        await album.exec({ command: "list", include: ["title", "id"], headers: true });
 
         td.verify(config.logger.log("title\tid"));
         for(let album of albums) {
@@ -82,7 +85,8 @@ describe("Album command", () => {
         };
         const config = { logger : td.object(["log"]) };
 
-        await album({ command: "list", include: ["*"], headers: true }, config, flickr);
+        const album = new Album(config, flickr);
+        await album.exec({ command: "list", include: ["*"], headers: true });
 
         td.verify(config.logger.log("title\tid\tdescription"));
         for(let album of albums) {
