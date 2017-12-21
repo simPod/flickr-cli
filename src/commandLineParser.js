@@ -83,7 +83,7 @@ class CommandLineParser
         if (args.album) {
             const params = {
                 command: args.album[0],
-                albumid: args.album[1],
+                albumid: args.album.slice(1),
                 tableFormatOptions: this.getTableFormatOptions(args)
             };
             return this.makeRes(Commands.Album, params);

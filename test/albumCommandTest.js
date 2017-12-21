@@ -30,7 +30,7 @@ describe("Album command", () => {
         const config = { logger : td.object(["log"]) };
 
         const album = new Album(config, flickr);
-        await album.exec({ command: Album.Commands.Index, albumid: "1234", tableFormatOptions: { fields: ["title", "id"] } });
+        await album.exec({ command: Album.Commands.Index, tableFormatOptions: { fields: ["title", "id"] } });
 
         for(let album of albums) {
             td.verify(config.logger.log(`${album.title}\t${album.id}`));
@@ -38,20 +38,33 @@ describe("Album command", () => {
     });
 
     it("should list content of an album with specified fields", async () => {
-        const pics = [
-            { title: "bla", id: "21314" },
-            { title: "blerh", id: "p2953405"}
-        ];
+        const pics = {
+            "1234": [
+                { title: "bla", id: "21314" },
+                { title: "blerh", id: "p2953405"}
+            ],
+            "5678": [
+                { title: "lsdkfs", id: "1242"}
+            ],
+            "20943": [
+                { title: "dsfsdfg", id: "03ktgo"}
+            ]
+        };
         const flickr = {
-            getAlbumContent: async (albumid) => pics
+            getAlbumContent: async (albumid) => pics[albumid]
         };
         const config = { logger: td.object( [ "log" ])};
 
         const album = new Album(config, flickr);
-        await album.exec({ command: Album.Commands.List, tableFormatOptions: { fields: '*', separator: ' '}});
+        await album.exec({ command: Album.Commands.List, albumid: ["1234", "5678"], tableFormatOptions: { fields: '*', separator: ' '}});
 
-        for (let photo of pics) {
+        for (let photo of pics["1234"]) {
             td.verify(config.logger.log(`${photo.title} ${photo.id}`))
         }
+
+        for (let photo of pics["5678"]) {
+            td.verify(config.logger.log(`${photo.title} ${photo.id}`))
+        }
+        td.verify(config.logger.log("title id"), {times: 1})
     })
 });

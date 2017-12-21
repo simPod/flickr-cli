@@ -23,8 +23,11 @@ class Album {
         tableFormat.format(albums);
     };
 
-    async listAlbumContent(tableFormat, albumId) {
-        const photos = await this.flickr.getAlbumContent(albumId);
+    async listAlbumContent(tableFormat, albumIds) {
+        let photos = [];
+        for(let albumId of albumIds) {
+            photos = photos.concat(await this.flickr.getAlbumContent(albumId));
+        }
         tableFormat.format(photos);
     }
 
@@ -35,7 +38,6 @@ class Album {
             separator: params.tableFormatOptions.separator || '\t',
             includeHeaders: params.tableFormatOptions.headers
         });
-
 
         if (params.command === Album.Commands.Index) {
             await this.indexAlbums(tableFormat);

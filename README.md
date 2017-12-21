@@ -64,5 +64,6 @@ Returns a list of albums.
 flickr album list 17837128371 [--fields xxx]
 ``` 
 
-Returns a list of photos and videos in an album. All options
+Returns a list of photos and videos in an album. You can
+ specify more than one albumid. All options
 for display setting in an album are valid here.

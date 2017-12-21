@@ -85,10 +85,10 @@ describe("Command line parser", () => {
             should(res.params.tableFormatOptions.headers).be.false();
         });
         it("should retrieve album id for album list", () => {
-            const res = parser.parse(makeArgv(["album", "list", "1234", "-f", "title", "id", "--noheaders"]));
+            const res = parser.parse(makeArgv(["album", "list", "1234", "4567", "-f", "title", "id", "--noheaders"]));
             should(res.command).equal(Commands.Album);
             should(res.params.command).equal("list");
-            should(res.params.albumid).equal("1234");
+            should(res.params.albumid).deepEqual(["1234", "4567"]);
             should(res.params.tableFormatOptions.fields).be.deepEqual(["title", "id"]);
             should(res.params.tableFormatOptions.headers).be.false();
         })
