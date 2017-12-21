@@ -50,7 +50,7 @@ describe("Album command", () => {
         const album = new Album(config, flickr);
         await album.exec({ command: "list", include: ["*"] });
 
-        td.verify(config.logger.log("title\tid"), {times: 0});
+        td.verify(config.logger.log("title\tid"), {times: 1});
         for(let album of albums) {
             td.verify(config.logger.log(`${album.title}\t${album.id}`));
         }
@@ -83,6 +83,7 @@ describe("Album command", () => {
         const flickr = {
             listAlbums: async () => albums
         };
+
         const config = { logger : td.object(["log"]) };
 
         const album = new Album(config, flickr);
