@@ -46,13 +46,23 @@ flickr album [command]
 ## Listing all albums
 
 ```sh 
-flickr album list [--include id title description [...] ] [--noheaders]
+flickr album index [--fields id title description [...] ] [--noheaders]
 ```
 
 Returns a list of albums.
 
-- `--include` or `-i` (_optional_) give a list of fields to 
+- `--fields` or `-f` (_optional_) give a list of fields to 
   include in the list. Can be `'*'` to include all. Defaults
   to `title`
 - `--noheaders` or `-H` (_optional_) remove field names from
   output.
+- `--separator ';'` or `-s ','` (_optional_) specify separator
+
+## Listing photos in an album
+
+```sh
+flickr album list 17837128371 [--fields xxx]
+``` 
+
+Returns a list of photos and videos in an album. All options
+for display setting in an album are valid here.

@@ -39,7 +39,7 @@ class TableFormat {
     }
 
     displayHeaders (mappedFields) {
-        const line = mappedFields.join("\t");
+        const line = mappedFields.join(this.config.separator);
         this.callback(line);
     };
 

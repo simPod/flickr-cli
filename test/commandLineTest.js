@@ -64,26 +64,34 @@ describe("Command line parser", () => {
     });
 
     context("for albums", () => {
-        it("should parse album list", () => {
-            const res = parser.parse(makeArgv(["album", "list"]));
+        it("should parse album index", () => {
+            const res = parser.parse(makeArgv(["album", "index"]));
+            should(res.command).equal(Commands.Album);
+            should(res.params.command).equal("index");
+            should(res.params.tableFormatOptions.fields).be.empty();
+        });
+        it("should parse fields for album index", () => {
+            const res = parser.parse(makeArgv(["album", "index", "--fields", "title", "id"]));
+            should(res.command).equal(Commands.Album);
+            should(res.params.command).equal("index");
+            should(res.params.tableFormatOptions.fields).be.deepEqual(["title", "id"]);
+            should(res.params.tableFormatOptions.headers).be.true();
+        });
+        it("should parse headers for album index", () => {
+            const res = parser.parse(makeArgv(["album", "index", "-f", "title", "id", "--noheaders"]));
+            should(res.command).equal(Commands.Album);
+            should(res.params.command).equal("index");
+            should(res.params.tableFormatOptions.fields).be.deepEqual(["title", "id"]);
+            should(res.params.tableFormatOptions.headers).be.false();
+        });
+        it("should retrieve album id for album list", () => {
+            const res = parser.parse(makeArgv(["album", "list", "1234", "-f", "title", "id", "--noheaders"]));
             should(res.command).equal(Commands.Album);
             should(res.params.command).equal("list");
-            should(res.params.include).be.empty();
-        });
-        it("should parse includes for album list", () => {
-            const res = parser.parse(makeArgv(["album", "list", "--include", "title", "id"]));
-            should(res.command).equal(Commands.Album);
-            should(res.params.command).equal("list");
-            should(res.params.include).be.deepEqual(["title", "id"]);
-            should(res.params.headers).be.true();
-        });
-        it("should parse headers for album list", () => {
-            const res = parser.parse(makeArgv(["album", "list", "--include", "title", "id", "--noheaders"]));
-            should(res.command).equal(Commands.Album);
-            should(res.params.command).equal("list");
-            should(res.params.include).be.deepEqual(["title", "id"]);
-            should(res.params.headers).be.false();
-        });
+            should(res.params.albumid).equal("1234");
+            should(res.params.tableFormatOptions.fields).be.deepEqual(["title", "id"]);
+            should(res.params.tableFormatOptions.headers).be.false();
+        })
     });
     
 });

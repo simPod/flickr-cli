@@ -54,4 +54,9 @@ describe("Table formatter", () => {
         const callback = test(config, (entity) => `${entity.title}\t${entity.id}\t${entity.description}`);
         td.verify(callback("title\tid\tdescription"), {times: 1});
     });
+    it("should list entities with specified separator", async () => {
+        const config = { defaultFields: ["title"], fields: ["*"], separator: ';'};
+        const callback = test(config, (entity) => `${entity.title};${entity.id};${entity.description}`);
+        td.verify(callback("title;id;description"), {times: 1});
+    });
 });

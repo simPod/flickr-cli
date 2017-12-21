@@ -68,7 +68,20 @@ class FlickrAdapter
         const flattenedList = list
             .map(generateFieldFlattener("title"))
             .map(generateFieldFlattener("description"));
+        return flattenedList;
+    }
 
+
+    async getAlbumContent(albumId) {
+        const generateFieldFlattener = (field) => (entry) => {
+            entry[field] = entry[field]["_content"];
+            return entry;
+        };
+        const auth = this.getFlickrAuth();
+        const flickr = new Flickr(auth);
+        const res = await flickr.photosets.getPhotos({ photoset_id: albumId, user_id: auth.user_id });
+        const list = res.body.photoset.photo;
+        const flattenedList = list;
         return flattenedList;
     }
 }

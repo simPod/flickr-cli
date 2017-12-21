@@ -5,8 +5,9 @@ const optionDefinitions = [
     { name: 'login', description: "Initiate login process", alias: 'l', type: Boolean },
     { name: 'upload', description: "Upload files", typeLabel: '[underline]{file} [file...]', alias: 'u', type: String, multiple: true },
     { name: 'album', description: "CRUD for albums", alias: "a", type: String, multiple: true },
-    { name: 'include', alias: "i", type: String, multiple: true},
-    { name: 'noheaders', description: "Do not include headers in a list command", alias: "H", type: Boolean}
+    { name: 'fields', alias: "f", type: String, multiple: true},
+    { name: 'noheaders', description: "Do not include headers in a list command", alias: "H", type: Boolean},
+    { name: 'separator', description: "Specify row separator", alias: "s", type: String, multiple: false}
 ];
 
 Commands = {
@@ -21,6 +22,7 @@ class CommandLineParser
 {
     constructor()
     {
+        this.getTableFormatOptions = this.getTableFormatOptions.bind(this);
         this.parse = this.parse.bind(this);
         this.parseAlbum = this.parseAlbum.bind(this);
         this.parseHelp = this.parseHelp.bind(this);
@@ -66,13 +68,23 @@ class CommandLineParser
         }
     }
 
+    getTableFormatOptions(args) {
+        const fields = args.fields || [];
+        const separator = args.separator;
+        const headers = args.noheaders !== true;
+        return {
+            fields,
+            separator,
+            headers
+        }
+    }
+
     parseAlbum(args) {
         if (args.album) {
-            const include = args.include || [];
             const params = {
                 command: args.album[0],
-                include,
-                headers: args.noheaders !== true // (we want a real bool, not a truthy indicator)
+                albumid: args.album[1],
+                tableFormatOptions: this.getTableFormatOptions(args)
             };
             return this.makeRes(Commands.Album, params);
         }

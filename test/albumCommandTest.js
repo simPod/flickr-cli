@@ -12,14 +12,14 @@ describe("Album command", () => {
         };
         const config = { logger : td.object(["log"]) };
         const album = new Album(config, flickr);
-        await album.exec({ command: "list" });
+        await album.exec({ command: Album.Commands.Index, tableFormatOptions: {} });
 
         for(let album of albums) {
             td.verify(config.logger.log(album.title));
         }
     });
 
-    it("should list albums with included fields", async () => {
+    it("should index albums with specified fields", async () => {
         const albums = [
             { title: "test", id: "123123" },
             { title: "second", id: "456456"}
@@ -30,68 +30,28 @@ describe("Album command", () => {
         const config = { logger : td.object(["log"]) };
 
         const album = new Album(config, flickr);
-        await album.exec({ command: "list", include: ["title", "id"] });
+        await album.exec({ command: Album.Commands.Index, albumid: "1234", tableFormatOptions: { fields: ["title", "id"] } });
 
         for(let album of albums) {
             td.verify(config.logger.log(`${album.title}\t${album.id}`));
         }
     });
 
-    it("should list albums with all fields", async () => {
-        const albums = [
-            { title: "test", id: "123123" },
-            { title: "second", id: "456456"}
+    it("should list content of an album with specified fields", async () => {
+        const pics = [
+            { title: "bla", id: "21314" },
+            { title: "blerh", id: "p2953405"}
         ];
         const flickr = {
-            listAlbums: async () => albums
+            getAlbumContent: async (albumid) => pics
         };
-        const config = { logger : td.object(["log"]) };
+        const config = { logger: td.object( [ "log" ])};
 
         const album = new Album(config, flickr);
-        await album.exec({ command: "list", include: ["*"] });
+        await album.exec({ command: Album.Commands.List, tableFormatOptions: { fields: '*', separator: ' '}});
 
-        td.verify(config.logger.log("title\tid"), {times: 1});
-        for(let album of albums) {
-            td.verify(config.logger.log(`${album.title}\t${album.id}`));
+        for (let photo of pics) {
+            td.verify(config.logger.log(`${photo.title} ${photo.id}`))
         }
-    });
-
-    it("should list albums with headers when fields are listed", async () => {
-        const albums = [
-            { title: "test", id: "123123", description: "prout" },
-            { title: "second", id: "456456", description: "pouet"}
-        ];
-        const flickr = {
-            listAlbums: async () => albums
-        };
-        const config = { logger : td.object(["log"]) };
-
-        const album = new Album(config, flickr);
-        await album.exec({ command: "list", include: ["title", "id"], headers: true });
-
-        td.verify(config.logger.log("title\tid"));
-        for(let album of albums) {
-            td.verify(config.logger.log(`${album.title}\t${album.id}`));
-        }
-    });
-
-    it("should list albums with headers with all fields", async () => {
-        const albums = [
-            { title: "test", id: "123123", description: "prout" },
-            { title: "second", id: "456456", description: "pouet"}
-        ];
-        const flickr = {
-            listAlbums: async () => albums
-        };
-
-        const config = { logger : td.object(["log"]) };
-
-        const album = new Album(config, flickr);
-        await album.exec({ command: "list", include: ["*"], headers: true });
-
-        td.verify(config.logger.log("title\tid\tdescription"));
-        for(let album of albums) {
-            td.verify(config.logger.log(`${album.title}\t${album.id}\t${album.description}`));
-        }
-    });
+    })
 });
