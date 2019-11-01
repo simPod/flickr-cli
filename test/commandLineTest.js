@@ -12,12 +12,12 @@ describe("Command line parser", () => {
         return res;
     };
 
-    it("should add -- to first argument if missing", () => {
-       const res = parser.parse(makeArgv(["login"]));
-       should(res.command).equal(Commands.Login);
+    it("should parse without dashes", () => {
+        const res = parser.parse(makeArgv(["login"]));
+        should(res.command).equal(Commands.Login);
     });
     it("should parse help", () => {
-        for(const cmd of ["-h", "--help", "--help --login"]){
+        for (const cmd of ["-h", "--help"]) {
             const res = parser.parse(makeArgv([cmd]));
             should(res.command).equal(Commands.Help);
         }
@@ -32,17 +32,17 @@ describe("Command line parser", () => {
         should(res.params.unknown).containEql("--jkjkl");
     });
     it("should parse login", () => {
-        for(const cmd of [["-l"], ["--login"]]){
+        for (const cmd of [["-l"], ["--login"]]) {
             const res = parser.parse(makeArgv(cmd));
             should(res.command).equal(Commands.Login);
         }
     });
     it("should parse upload", () => {
-        for(const cmd of [
+        for (const cmd of [
             ["-u", "123.png", "456.png"],
-            ["something", "something", "--upload", "123.png", "456.png"],
-            ["-u", "123.png", "--upload", "456.png"],
-            ["--upload", "123.png", "456.png", "--anotherThing", "toto"]]){
+            //["something", "something", "--upload", "123.png", "456.png"],
+            ["-u", "123.png", "456.png"],
+            ["--upload", "123.png", "456.png"]]) {
             const res = parser.parse(makeArgv(cmd));
             should(res.command).equal(Commands.Upload);
             should(res.params.files).have.length(2);
@@ -52,9 +52,9 @@ describe("Command line parser", () => {
     });
 
     it("should parse upload album", () => {
-        for(const cmd of [
-            ["-u", "123.png", "456.png", ],
-            ["something", "something", "--upload", "123.png", "456.png"]]){
+        for (const cmd of [
+            ["-u", "123.png", "456.png",],
+            ["--upload", "123.png", "456.png"]]) {
             const res = parser.parse(makeArgv(cmd));
             should(res.command).equal(Commands.Upload);
             should(res.params.files).have.length(2);
@@ -62,6 +62,7 @@ describe("Command line parser", () => {
             should(res.params.files).containEql("456.png");
         }
     });
+
 
     context("for albums", () => {
         it("should parse album index", () => {
@@ -91,7 +92,16 @@ describe("Command line parser", () => {
             should(res.params.albumid).deepEqual(["1234", "4567"]);
             should(res.params.tableFormatOptions.fields).be.deepEqual(["title", "id"]);
             should(res.params.tableFormatOptions.headers).be.false();
+        });
+
+        it("should read albumid and title from command line", () => {
+            const cmd = ["album", "rename", "--title", "newname", "--albumid", "newid"];
+            const res = parser.parse(makeArgv(cmd));
+            should(res.command).equal(Commands.Album);
+            should(res.params.command).equal("rename");
+            should(res.params.title).equal("newname");
+            should(res.params.albumid).equal("newid");
         })
     });
-    
+
 });

@@ -5,9 +5,11 @@ const optionDefinitions = [
     { name: 'login', description: "Initiate login process", alias: 'l', type: Boolean },
     { name: 'upload', description: "Upload files", typeLabel: '[underline]{file} [file...]', alias: 'u', type: String, multiple: true },
     { name: 'album', description: "CRUD for albums", alias: "a", type: String, multiple: true },
-    { name: 'fields', alias: "f", type: String, multiple: true},
-    { name: 'noheaders', description: "Do not include headers in a list command", alias: "H", type: Boolean},
-    { name: 'separator', description: "Specify row separator", alias: "s", type: String, multiple: false}
+    { name: 'fields', alias: "f", type: String, multiple: true },
+    { name: 'noheaders', description: "Do not include headers in a list command", alias: "H", type: Boolean },
+    { name: 'separator', description: "Specify row separator", alias: "s", type: String, multiple: false },
+    { name: 'albumid', type: String, multiple: false },
+    { name: 'title', type: String, multiple: false }
 ];
 
 Commands = {
@@ -18,16 +20,16 @@ Commands = {
     Unknown: "Unknown"
 };
 
-class CommandLineParser
-{
-    constructor()
-    {
+class CommandLineParser {
+    constructor() {
         this.getTableFormatOptions = this.getTableFormatOptions.bind(this);
         this.parse = this.parse.bind(this);
         this.parseAlbum = this.parseAlbum.bind(this);
         this.parseHelp = this.parseHelp.bind(this);
         this.parseLogin = this.parseLogin.bind(this);
         this.parseUpload = this.parseUpload.bind(this);
+        this.parseSubcommands = this.parseSubcommands.bind(this);
+
         this.makeRes = this.makeRes.bind(this);
         this.parsers = [
             this.parseAlbum,
@@ -37,18 +39,18 @@ class CommandLineParser
         ];
     }
 
-    getOptions(){
+    getOptions() {
         return optionDefinitions;
     }
 
-    makeRes(command, params){
+    makeRes(command, params) {
         return {
             command,
             params: params || {}
         }
     }
 
-    parseHelp(args){
+    parseHelp(args) {
         if (args.help) {
             return this.makeRes(Commands.Help);
         }
@@ -79,13 +81,36 @@ class CommandLineParser
         }
     }
 
+    removeDashes(str) {
+        while (str[0] === '-') {
+            str = str.slice(1);
+        }
+        return str;
+    }
+
+    parseSubcommands(args, params) {
+        while (args.length > 0) {
+            const field = this.removeDashes(args.shift());
+            const value = args.shift();
+            params[field] = value;
+        }
+    }
+
     parseAlbum(args) {
         if (args.album) {
-            const params = {
-                command: args.album[0],
-                albumid: args.album.slice(1),
-                tableFormatOptions: this.getTableFormatOptions(args)
+            const command = args.album.shift();
+            let params = {
+                command
             };
+            if (command === "index" || command === "list") {
+                params.albumid = args.album || args.albumid;
+                params.tableFormatOptions = this.getTableFormatOptions(args);
+            }
+            if (command === "rename") {
+                params.albumid = args.albumid;
+                params.title = args.title;
+                //this.parseSubcommands(args.album, params);
+            }
             return this.makeRes(Commands.Album, params);
         }
     }
@@ -97,8 +122,7 @@ class CommandLineParser
         return argv;
     }
 
-    parse(argv = process.argv)
-    {
+    parse(argv = process.argv) {
         if (argv.length < 3) {
             return this.makeRes(Commands.Unknown, { unknown: [""] });
         }

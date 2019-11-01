@@ -8,13 +8,13 @@ describe("Upload command", () => {
 
         const files = [1, 2, 3].map((index) => `${index}.jpg`);
         for (file of files) {
-            td.when(flickr.upload(file)).thenResolve({photoid:{_content: 123}});
+            td.when(flickr.upload(file)).thenResolve({ photoid: { _content: 123 } });
         }
 
         const upload = new Upload(config, flickr);
-        await upload.exec({files});
+        await upload.exec({ files });
 
-        for(file of files) {
+        for (file of files) {
             td.verify(flickr.upload(file));
         }
     });
@@ -27,9 +27,9 @@ describe("Upload command", () => {
         td.when(flickr.upload(file)).thenReject(Error("bla"));
 
         const upload = new Upload(config, flickr);
-        await upload.exec({files: [file]});
+        await upload.exec({ files: [file] });
 
-        td.verify(flickr.upload(file), {times: 5});
+        td.verify(flickr.upload(file), { times: 5 });
         td.verify(config.logger.error(`Failed to upload ${file}: bla`));
     });
 });

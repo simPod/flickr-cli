@@ -2,10 +2,8 @@ const Flickr = require("flickr-sdk");
 const parse = require('url').parse;
 const http = require('http');
 
-class FlickrAdapter
-{
-    constructor(configuration)
-    {
+class FlickrAdapter {
+    constructor(configuration) {
         this.key = "9d4245967dab4342323f56e5a3729d4e";
         this.secret = "285ef7f67de72667";
         this.configuration = configuration;
@@ -26,7 +24,7 @@ class FlickrAdapter
         return auth;
     }
 
-    async login(){
+    async login() {
         const listenToAnswer = () => {
             return new Promise((resolve) => {
                 const server = http.createServer(function (req, res) {
@@ -49,7 +47,7 @@ class FlickrAdapter
         return token;
     }
 
-    async upload(file){
+    async upload(file) {
         const auth = this.getFlickrAuth();
         const upload = new Flickr.Upload(auth, file, { title: file });
         const res = await upload;
@@ -71,7 +69,6 @@ class FlickrAdapter
         return flattenedList;
     }
 
-
     async getAlbumContent(albumId) {
         const generateFieldFlattener = (field) => (entry) => {
             entry[field] = entry[field]["_content"];
@@ -83,6 +80,13 @@ class FlickrAdapter
         const list = res.body.photoset.photo;
         const flattenedList = list;
         return flattenedList;
+    }
+
+    async renameAlbum(albumId, title) {
+        console.log(`Renaming album ${albumId} to ${title}`);
+        const auth = this.getFlickrAuth();
+        const flickr = new Flickr(auth);
+        await flickr.photosets.editMeta({ api_key: this.key, photoset_id: albumId, title: title });
     }
 }
 
