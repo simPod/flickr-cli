@@ -6,7 +6,8 @@ class Album {
         return {
             Index: "index",
             List: "list",
-            Rename: "rename"
+            Rename: "rename",
+            Reorder: "reorder"
         };
     };
 
@@ -17,6 +18,7 @@ class Album {
         this.indexAlbums = this.indexAlbums.bind(this);
         this.listAlbumContent = this.listAlbumContent.bind(this);
         this.renameAlbum = this.renameAlbum.bind(this);
+        this.reorderAlbum = this.reorderAlbum.bind(this);
     }
 
     async indexAlbums(tableFormat) {
@@ -41,6 +43,15 @@ class Album {
         }
     }
 
+    async reorderAlbum(albumIds) {
+        try {
+            await this.flickr.reorderAlbums(albumIds);
+        }
+        catch (error) {
+            console.error(`Error reordering album: ${error}`);
+        }
+    }
+
     async exec(params) {
         const tableFormat = new TableFormat((str) => this.config.logger.log(str), {
             fields: (!!params.tableFormatOptions && !!params.tableFormatOptions.fields) ? params.tableFormatOptions.fields : ["title"],
@@ -58,6 +69,11 @@ class Album {
 
         if (params.command === Album.Commands.Rename) {
             await this.renameAlbum(params.albumid, params.title);
+        }
+
+        if (params.command === Album.Commands.Reorder) {
+            const albumids = params.albumid.join(",")
+            await this.reorderAlbum(albumids);
         }
     }
 }

@@ -83,10 +83,15 @@ class FlickrAdapter {
     }
 
     async renameAlbum(albumId, title) {
-        console.log(`Renaming album ${albumId} to ${title}`);
         const auth = this.getFlickrAuth();
         const flickr = new Flickr(auth);
         await flickr.photosets.editMeta({ api_key: this.key, photoset_id: albumId, title: title });
+    }
+
+    async reorderAlbums(albumIds) {
+        const auth = this.getFlickrAuth();
+        const flickr = new Flickr(auth);
+        await flickr.photosets.orderSets({ api_key: this.key, photoset_ids: albumIds });
     }
 }
 

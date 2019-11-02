@@ -71,13 +71,24 @@ describe("Album command", () => {
     it("should rename album", async () => {
         const albumid = "1234";
         const title = "newname"
-        // const flickr = { renameAlbum: (albumid, title) => console.log(`Renaming album ${albumid} to ${title}`) };
         const flickr = td.object(["renameAlbum"]);
         const config = {};
         const album = new Album(config, flickr);
 
-        await album.exec({ command: Album.Commands.Rename, albumid: albumid, title: title, tableFormatOptions: { fields: '*', separator: ' ' } });
+        await album.exec({ command: Album.Commands.Rename, albumid: albumid, title: title });
 
         td.verify(flickr.renameAlbum(albumid, title));
+    });
+
+
+    it("should reorder albums", async () => {
+        const albumids = [1, 3, 2, 4];
+        const flickr = td.object(["reorderAlbums"]);
+        const config = {};
+        const album = new Album(config, flickr);
+
+        await album.exec({ command: Album.Commands.Reorder, albumid: albumids });
+
+        td.verify(flickr.reorderAlbums("1,3,2,4"));
     });
 });
