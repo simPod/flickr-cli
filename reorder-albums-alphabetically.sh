@@ -4,4 +4,4 @@ ORDERED_LIST=`./bin/flickr album index -f title id | sed $'s/title\tid//' | sort
     echo $ID
 done`
 
-./bin/flickr album order $ORDERED_LIST
+./bin/flickr album reorder $ORDERED_LIST
