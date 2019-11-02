@@ -103,4 +103,16 @@ describe("Album command", () => {
 
         td.verify(flickr.deleteAlbum("51"));
     });
+
+    it("should remove photos from albums", async () => {
+        const albumid = "51";
+        const photoIds = ["1", "2"];
+        const flickr = td.object(["removePhotosFromSet"]);
+        const config = {};
+        const album = new Album(config, flickr);
+
+        await album.exec({ command: Album.Commands.Remove, albumid: albumid, photoids: photoIds });
+
+        td.verify(flickr.removePhotosFromSet("51", "1,2"));
+    });
 });

@@ -9,6 +9,8 @@ const optionDefinitions = [
     { name: 'noheaders', description: "Do not include headers in a list command", alias: "H", type: Boolean },
     { name: 'separator', description: "Specify row separator", alias: "s", type: String, multiple: false },
     { name: 'albumid', type: String, multiple: false },
+    { name: 'albumids', type: String, multiple: true },
+    { name: 'photoids', type: String, multiple: true },
     { name: 'title', type: String, multiple: false }
 ];
 
@@ -105,6 +107,10 @@ class CommandLineParser {
             if (command === "index" || command === "list" || command === "reorder" || command === "delete") {
                 params.albumid = args.album || args.albumids || args.albumid;
                 params.tableFormatOptions = this.getTableFormatOptions(args);
+            }
+            if (command === "remove") {
+                params.albumid = args.albumid || args.album.shift();
+                params.photoids = args.photoids;
             }
             if (command === "rename") {
                 params.albumid = args.albumid;

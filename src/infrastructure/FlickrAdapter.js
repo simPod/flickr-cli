@@ -12,6 +12,7 @@ class FlickrAdapter {
         this.upload = this.upload.bind(this);
         this.login = this.login.bind(this);
         this.deleteAlbum = this.deleteAlbum.bind(this);
+        this.removePhotosFromSet = this.removePhotosFromSet.bind(this);
     }
 
     getFlickrAuth() {
@@ -99,6 +100,12 @@ class FlickrAdapter {
         const auth = this.getFlickrAuth();
         const flickr = new Flickr(auth);
         await flickr.photosets.delete({ api_key: this.key, photoset_id: albumId });
+    }
+
+    async removePhotosFromSet(albumId, photoIds) {
+        const auth = this.getFlickrAuth();
+        const flickr = new Flickr(auth);
+        await flickr.photosets.removePhotos({ api_key: this.key, photoset_id: albumId, photo_ids: photoIds });
     }
 }
 

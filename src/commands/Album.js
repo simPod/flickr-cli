@@ -8,7 +8,8 @@ class Album {
             List: "list",
             Rename: "rename",
             Reorder: "reorder",
-            Delete: "delete"
+            Delete: "delete",
+            Remove: "remove"
         };
     };
 
@@ -21,6 +22,7 @@ class Album {
         this.renameAlbum = this.renameAlbum.bind(this);
         this.reorderAlbum = this.reorderAlbum.bind(this);
         this.deleteAlbum = this.deleteAlbum.bind(this);
+        this.removePhotosFromSet = this.removePhotosFromSet.bind(this);
     }
 
     async indexAlbums(tableFormat) {
@@ -62,6 +64,16 @@ class Album {
         }
     }
 
+    async removePhotosFromSet(albumId, photoIds) {
+        try {
+            const ids = photoIds.join(",");
+            await this.flickr.removePhotosFromSet(albumId, ids);
+        }
+        catch (error) {
+            console.error(`Error reordering album: ${error}`);
+        }
+    }
+
     async exec(params) {
         const tableFormat = new TableFormat((str) => this.config.logger.log(str), {
             fields: (!!params.tableFormatOptions && !!params.tableFormatOptions.fields) ? params.tableFormatOptions.fields : ["title"],
@@ -83,7 +95,9 @@ class Album {
         if (params.command === Album.Commands.Delete) {
             await this.deleteAlbum(params.albumid);
         }
-
+        if (params.command === Album.Commands.Remove) {
+            await this.removePhotosFromSet(params.albumid, params.photoids);
+        }
         if (params.command === Album.Commands.Reorder) {
             const albumids = params.albumid.join(",")
             await this.reorderAlbum(albumids);
