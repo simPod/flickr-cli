@@ -11,6 +11,7 @@ class FlickrAdapter {
         this.getFlickrAuth = this.getFlickrAuth.bind(this);
         this.upload = this.upload.bind(this);
         this.login = this.login.bind(this);
+        this.deleteAlbum = this.deleteAlbum.bind(this);
     }
 
     getFlickrAuth() {
@@ -40,7 +41,7 @@ class FlickrAdapter {
         const oauth = Flickr.OAuth(this.key, this.secret);
         const res = await oauth.request("http://localhost:3000/");
         const { oauth_token, oauth_token_secret } = res.body;
-        this.configuration.logger.log(`Go to this URL and authorize the application: ${oauth.authorizeUrl(oauth_token, "write")}`);
+        this.configuration.logger.log(`Go to this URL and authorize the application: ${oauth.authorizeUrl(oauth_token, "delete")}`);
         const verifier = await listenToAnswer();
         const verifyRes = await oauth.verify(oauth_token, verifier, oauth_token_secret);
         const token = verifyRes.body;
@@ -92,6 +93,12 @@ class FlickrAdapter {
         const auth = this.getFlickrAuth();
         const flickr = new Flickr(auth);
         await flickr.photosets.orderSets({ api_key: this.key, photoset_ids: albumIds });
+    }
+
+    async deleteAlbum(albumId) {
+        const auth = this.getFlickrAuth();
+        const flickr = new Flickr(auth);
+        await flickr.photosets.delete({ api_key: this.key, photoset_id: albumId });
     }
 }
 

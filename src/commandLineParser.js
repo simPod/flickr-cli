@@ -102,7 +102,7 @@ class CommandLineParser {
             let params = {
                 command
             };
-            if (command === "index" || command === "list" || command === "reorder") {
+            if (command === "index" || command === "list" || command === "reorder" || command === "delete") {
                 params.albumid = args.album || args.albumids || args.albumid;
                 params.tableFormatOptions = this.getTableFormatOptions(args);
             }

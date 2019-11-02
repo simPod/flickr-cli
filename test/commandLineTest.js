@@ -111,6 +111,15 @@ describe("Command line parser", () => {
             should(res.params.command).equal("reorder");
             should(res.params.albumid).deepEqual(["1", "3", "2", "4"]);
         });
+
+
+        it("should read delete from command line", () => {
+            const cmd = ["album", "delete", "1", "3", "2", "4"];
+            const res = parser.parse(makeArgv(cmd));
+            should(res.command).equal(Commands.Album);
+            should(res.params.command).equal("delete");
+            should(res.params.albumid).deepEqual(["1", "3", "2", "4"]);
+        });
     });
 
 });

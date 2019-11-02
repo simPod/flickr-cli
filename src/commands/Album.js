@@ -7,7 +7,8 @@ class Album {
             Index: "index",
             List: "list",
             Rename: "rename",
-            Reorder: "reorder"
+            Reorder: "reorder",
+            Delete: "delete"
         };
     };
 
@@ -19,6 +20,7 @@ class Album {
         this.listAlbumContent = this.listAlbumContent.bind(this);
         this.renameAlbum = this.renameAlbum.bind(this);
         this.reorderAlbum = this.reorderAlbum.bind(this);
+        this.deleteAlbum = this.deleteAlbum.bind(this);
     }
 
     async indexAlbums(tableFormat) {
@@ -43,6 +45,14 @@ class Album {
         }
     }
 
+    async deleteAlbum(albumId) {
+        try {
+            await this.flickr.deleteAlbum(albumId);
+        }
+        catch (error) {
+            console.error(`Error deleting album: ${error}`);
+        }
+    }
     async reorderAlbum(albumIds) {
         try {
             await this.flickr.reorderAlbums(albumIds);
@@ -69,6 +79,9 @@ class Album {
 
         if (params.command === Album.Commands.Rename) {
             await this.renameAlbum(params.albumid, params.title);
+        }
+        if (params.command === Album.Commands.Delete) {
+            await this.deleteAlbum(params.albumid);
         }
 
         if (params.command === Album.Commands.Reorder) {

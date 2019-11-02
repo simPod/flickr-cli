@@ -91,4 +91,16 @@ describe("Album command", () => {
 
         td.verify(flickr.reorderAlbums("1,3,2,4"));
     });
+
+
+    it("should delete albums", async () => {
+        const albumid = "51";
+        const flickr = td.object(["deleteAlbum"]);
+        const config = {};
+        const album = new Album(config, flickr);
+
+        await album.exec({ command: Album.Commands.Delete, albumid: albumid });
+
+        td.verify(flickr.deleteAlbum("51"));
+    });
 });
