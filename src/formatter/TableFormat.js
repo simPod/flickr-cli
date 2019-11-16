@@ -1,12 +1,10 @@
 class TableFormat {
-    constructor(callback, config) {
+    constructor(config) {
         this.applyDefaultConfiguration = this.applyDefaultConfiguration.bind(this);
         this.format = this.format.bind(this);
         this.displayHeaders = this.displayHeaders.bind(this);
         this.expandFields = this.expandFields.bind(this);
         this.isAllFields = this.isAllFields.bind(this);
-
-        this.callback = callback;
         this.config = this.applyDefaultConfiguration(config);
     }
 
@@ -26,11 +24,11 @@ class TableFormat {
         return config;
     }
 
-    isAllFields (fields) {
+    isAllFields(fields) {
         return fields.length === 1 && fields[0] === "*";
     }
 
-    expandFields (sampleEntity) {
+    expandFields(sampleEntity) {
         if (this.isAllFields(this.config.fields)) {
             return Object.keys(sampleEntity)
         } else {
@@ -38,23 +36,23 @@ class TableFormat {
         }
     }
 
-    displayHeaders (mappedFields) {
-        const line = mappedFields.join(this.config.separator);
-        this.callback(line);
+    displayHeaders(mappedFields) {
+        return mappedFields.join(this.config.separator);
     };
 
-    format (entities) {
+    format(entities) {
         let includeHeaders = this.config.displayHeaders;
+        const res = [];
         for (let entity of entities) {
             const mappedFields = this.expandFields(entity);
             if (includeHeaders) {
-                this.displayHeaders(mappedFields);
+                res.push(this.displayHeaders(mappedFields));
                 includeHeaders = false;
             }
             const fieldsValues = mappedFields.map((field) => entity[field]);
-            const line = fieldsValues.join(this.config.separator);
-            this.callback(line);
+            res.push(fieldsValues.join(this.config.separator));
         }
+        return res;
     }
 }
 

@@ -9,18 +9,18 @@ describe("Retry", () => {
         const start = Date.now();
         const logger = td.object(["log", "error"]);
         const retry = new Retry(4, 100, RetryPolicies.constant, logger);
-        await (retry.retry(async () => { i++; throw error;})).should.be.rejectedWith(error);
+        await (retry.retry(async () => { i++; throw error; })).should.be.rejectedWith(error);
         i.should.equal(4);
         (Date.now() - start).should.be.greaterThan(300);
         (Date.now() - start).should.be.below(400);
-        td.verify(logger.error("error"), {times: 4});
+        td.verify(logger.error("error"), { times: 4 });
     });
     it("should stop retrying when process works", async () => {
         let i = 0;
         const logger = td.object(["log", "error"]);
         const start = Date.now();
         const retry = new Retry(4, 100, RetryPolicies.constant, logger);
-        const result = await retry.retry(async () => { if (++i < 3) throw error; return 123});
+        const result = await retry.retry(async () => { if (++i < 3) throw error; return 123 });
         i.should.equal(3);
         should(result).equal(123);
         (Date.now() - start).should.be.greaterThanOrEqual(200);
@@ -30,9 +30,9 @@ describe("Retry", () => {
     it("should stop retrying exponentially", async () => {
         const logger = td.object(["log", "error"]);
         const start = Date.now();
-        const retry = new Retry(4, 100, RetryPolicies.exponential, logger);
+        const retry = new Retry(4, 10, RetryPolicies.exponential, logger);
         await retry.retry(async () => { throw error; }).should.be.rejectedWith(error);
-        (Date.now() - start).should.be.greaterThan(100 + 200 + 400);
-        (Date.now() - start).should.be.below(800);
+        (Date.now() - start).should.be.greaterThan(10 + 20 + 40);
+        (Date.now() - start).should.be.below(80);
     });
 });

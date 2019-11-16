@@ -1,16 +1,17 @@
-const {RetryPolicies, Retry} = require("../utils/retry");
+const { RetryPolicies, Retry } = require("../../utils/retry");
 
 class Upload {
 
-    constructor(config, flickr) {
+    constructor(config, flickr, params) {
         this.config = config;
         this.flickr = flickr;
         this.exec = this.exec.bind(this);
+        this.params = params;
     }
 
-    async exec(params) {
+    async exec() {
         const retry = new Retry(5, 1000, RetryPolicies.exponential, this.config.logger);
-        for (const file of params.files) {
+        for (const file of this.params.files) {
             this.config.logger.write(`Uploading ${file} `);
             try {
                 const res = await retry.retry(async () => await this.flickr.upload(file));

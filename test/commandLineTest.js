@@ -1,8 +1,8 @@
 const should = require("should");
-const { CommandLineParser, Commands } = require("../src/commandLineParser");
+
+const CommandLineParser = require("../src/commandLineParser");
 
 describe("Command line parser", () => {
-    const parser = new CommandLineParser();
 
     const makeArgv = (args) => {
         const res = ["node", "/something/stuff"];
@@ -12,122 +12,143 @@ describe("Command line parser", () => {
         return res;
     };
 
-    it("should parse without dashes", () => {
-        const res = parser.parse(makeArgv(["login"]));
-        should(res.command).equal(Commands.Login);
-    });
-    it("should parse help", () => {
-        for (const cmd of ["-h", "--help"]) {
-            const res = parser.parse(makeArgv([cmd]));
-            should(res.command).equal(Commands.Help);
+    const createParser = () => {
+        const flickr = {};
+        const config = {};
+        const parser = new CommandLineParser(config, flickr);
+        return {
+            flickr,
+            config,
+            parser,
+            checkRes: (res) => {
+                should(res.flickr = flickr)
+                should(res.config = config)
+            }
         }
-    });
-    it('should return Unknown when no params are given', () => {
-        const res = parser.parse(makeArgv([]));
-        should(res.command).equal(Commands.Unknown);
-    });
-    it("should return Unknown", () => {
-        const res = parser.parse(makeArgv(["--jkjkl"]));
-        should(res.command).equal(Commands.Unknown);
-        should(res.params.unknown).containEql("--jkjkl");
-    });
-    it("should parse login", () => {
-        for (const cmd of [["-l"], ["--login"]]) {
-            const res = parser.parse(makeArgv(cmd));
-            should(res.command).equal(Commands.Login);
-        }
-    });
-    it("should parse upload", () => {
-        for (const cmd of [
-            ["-u", "123.png", "456.png"],
-            //["something", "something", "--upload", "123.png", "456.png"],
-            ["-u", "123.png", "456.png"],
-            ["--upload", "123.png", "456.png"]]) {
-            const res = parser.parse(makeArgv(cmd));
-            should(res.command).equal(Commands.Upload);
-            should(res.params.files).have.length(2);
-            should(res.params.files).containEql("123.png");
-            should(res.params.files).containEql("456.png");
-        }
+    }
+
+    context("options", () => {
+        it("should get fields", () => {
+            const parserAndFakes = createParser();
+            const res = parserAndFakes.parser.getFormatter(makeArgv(["album", "index", "--field", "name,id"]), true);
+            should(res).be.instanceOf(require("../src/formatter/TableFormat"));
+            should(res.config.fields).be.deepEqual(["name", "id"]);
+            should(res.config.displayHeaders).be.true();
+            parserAndFakes.checkRes(res);
+        });
+        it("should parse headers for album index", () => {
+            const parserAndFakes = createParser();
+            const res = parserAndFakes.parser.getFormatter(makeArgv(["album", "index", "-f", "sdf", "-f", "id", "--no-headers"]), true);
+            should(res).be.instanceOf(require("../src/formatter/TableFormat"));
+            should(res.config.fields).be.deepEqual(["sdf", "id"]);
+            should(res.config.displayHeaders).be.false();
+            parserAndFakes.checkRes(res);
+        });
+        it("should parse without dashes", () => {
+            const parserAndFakes = createParser();
+            const res = parserAndFakes.parser.parse(makeArgv(["login"]));
+            should(res).be.instanceOf(require("../src/commands/login/login.js"));
+            parserAndFakes.checkRes(res);
+        });
+    })
+
+    context("Unknown or missing", () => {
+        it('should return Unknown when no params are given', () => {
+            const parserAndFakes = createParser();
+            should(() => parserAndFakes.parser.parse(makeArgv([]))).throw("No parameters were given")
+        });
+        it("should return Unknown", () => {
+            const parserAndFakes = createParser();
+            should(() => parserAndFakes.parser.parse(makeArgv(["--jkjkl"]))).throw("Unknown command: --jkjkl");
+        });
     });
 
-    it("should parse upload album", () => {
-        for (const cmd of [
-            ["-u", "123.png", "456.png",],
-            ["--upload", "123.png", "456.png"]]) {
-            const res = parser.parse(makeArgv(cmd));
-            should(res.command).equal(Commands.Upload);
-            should(res.params.files).have.length(2);
-            should(res.params.files).containEql("123.png");
-            should(res.params.files).containEql("456.png");
-        }
-    });
+    context("various commands", () => {
 
+        it("should parse help", () => {
+            for (const cmd of ["-h", "--help"]) {
+                const parserAndFakes = createParser();
+                const res = parserAndFakes.parser.parse(makeArgv([cmd]));
+                should(res).be.instanceOf(require("../src/commands/help/help.js"));
+                parserAndFakes.checkRes(res);
+            }
+        });
+        it("should parse login", () => {
+            for (const cmd of [["-l"], ["--login"]]) {
+                const parserAndFakes = createParser();
+                const res = parserAndFakes.parser.parse(makeArgv(cmd));
+                should(res).be.instanceOf(require("../src/commands/login/login.js"));
+                parserAndFakes.checkRes(res);
+            }
+        });
+        it("should parse upload", () => {
+            for (const cmd of [
+                ["-u", "123.png", "--upload", "456.png"],
+                ["--upload", "123.png", "-u", "456.png"]]) {
+                const parserAndFakes = createParser();
+                const res = parserAndFakes.parser.parse(makeArgv(cmd));
+                should(res).be.instanceOf(require("../src/commands/upload/upload"));
+                should(res.params.files).have.length(2);
+                should(res.params.files).containEql("123.png");
+                should(res.params.files).containEql("456.png");
+                parserAndFakes.checkRes(res);
+            }
+        });
+    });
 
     context("for albums", () => {
         it("should parse album index", () => {
-            const res = parser.parse(makeArgv(["album", "index"]));
-            should(res.command).equal(Commands.Album);
-            should(res.params.command).equal("index");
-            should(res.params.tableFormatOptions.fields).be.empty();
+            const parserAndFakes = createParser();
+            const res = parserAndFakes.parser.parse(makeArgv(["album", "index"]));
+            should(res).be.instanceOf(require("../src/commands/album/index"));
+            parserAndFakes.checkRes(res);
         });
-        it("should parse fields for album index", () => {
-            const res = parser.parse(makeArgv(["album", "index", "--fields", "title", "id"]));
-            should(res.command).equal(Commands.Album);
-            should(res.params.command).equal("index");
-            should(res.params.tableFormatOptions.fields).be.deepEqual(["title", "id"]);
-            should(res.params.tableFormatOptions.headers).be.true();
-        });
-        it("should parse headers for album index", () => {
-            const res = parser.parse(makeArgv(["album", "index", "-f", "title", "id", "--noheaders"]));
-            should(res.command).equal(Commands.Album);
-            should(res.params.command).equal("index");
-            should(res.params.tableFormatOptions.fields).be.deepEqual(["title", "id"]);
-            should(res.params.tableFormatOptions.headers).be.false();
-        });
-        it("should retrieve album id for album list", () => {
-            const res = parser.parse(makeArgv(["album", "list", "1234", "4567", "-f", "title", "id", "--noheaders"]));
-            should(res.command).equal(Commands.Album);
-            should(res.params.command).equal("list");
-            should(res.params.albumid).deepEqual(["1234", "4567"]);
-            should(res.params.tableFormatOptions.fields).be.deepEqual(["title", "id"]);
-            should(res.params.tableFormatOptions.headers).be.false();
+        it("should parse album list", () => {
+            const parserAndFakes = createParser();
+            const res = parserAndFakes.parser.parse(makeArgv(["album", "list", "1234", "--list", "4567", "-f", "title,id", "--no-headers"]));
+            should(res).be.instanceOf(require("../src/commands/album/list"));
+            should(res.albumIds).deepEqual(["1234", "4567"]);
+            should(res.format.config.fields).be.deepEqual(["title", "id"]);
+            should(res.format.config.displayHeaders).be.false();
+            parserAndFakes.checkRes(res);
         });
 
-        it("should read albumid and title from command line", () => {
-            const cmd = ["album", "rename", "--title", "newname", "--albumid", "newid"];
-            const res = parser.parse(makeArgv(cmd));
-            should(res.command).equal(Commands.Album);
-            should(res.params.command).equal("rename");
-            should(res.params.title).equal("newname");
-            should(res.params.albumid).equal("newid");
+        it("should parse rename", () => {
+            const cmd = ["album", "rename", "--albumid", "newid", "--title", "newname"];
+            const parserAndFakes = createParser();
+            const res = parserAndFakes.parser.parse(makeArgv(cmd));
+            should(res).be.instanceOf(require("../src/commands/album/rename"));
+            should(res.title).equal("newname");
+            should(res.albumId).equal("newid");
+            parserAndFakes.checkRes(res);
         });
-
 
         it("should read reorder from command line", () => {
-            const cmd = ["album", "reorder", "1", "3", "2", "4"];
-            const res = parser.parse(makeArgv(cmd));
-            should(res.command).equal(Commands.Album);
-            should(res.params.command).equal("reorder");
-            should(res.params.albumid).deepEqual(["1", "3", "2", "4"]);
+            const cmd = ["album", "reorder", "1,3", "--reorder", "2,4"];
+            const parserAndFakes = createParser();
+            const res = parserAndFakes.parser.parse(makeArgv(cmd));
+            should(res).be.instanceOf(require("../src/commands/album/reorder"));
+            should(res.albumIds).deepEqual(["1", "3", "2", "4"]);
+            parserAndFakes.checkRes(res);
         });
 
-
-        it("should read delete from command line", () => {
-            const cmd = ["album", "delete", "1", "3", "2", "4"];
-            const res = parser.parse(makeArgv(cmd));
-            should(res.command).equal(Commands.Album);
-            should(res.params.command).equal("delete");
-            should(res.params.albumid).deepEqual(["1", "3", "2", "4"]);
+        it("should parse delete", () => {
+            const cmd = ["album", "delete", "--albumid", "1", "--albumid", "3,2", "--albumid", "4"];
+            const parserAndFakes = createParser();
+            const res = parserAndFakes.parser.parse(makeArgv(cmd));
+            should(res).be.instanceOf(require("../src/commands/album/delete"));
+            should(res.albumIds).deepEqual(["1", "3", "2", "4"]);
+            parserAndFakes.checkRes(res);
         });
 
         it("should read remove photos from command line", () => {
-            const cmd = ["album", "remove", "12", "--photoids", "3", "2", "4"];
-            const res = parser.parse(makeArgv(cmd));
-            should(res.command).equal(Commands.Album);
-            should(res.params.command).equal("remove");
-            should(res.params.albumid).equal("12");
-            should(res.params.photoids).deepEqual(["3", "2", "4"]);
+            const cmd = ["album", "remove", "--albumid", "12", "--photoid", "3,2", "--photoid", "4"];
+            const parserAndFakes = createParser();
+            const res = parserAndFakes.parser.parse(makeArgv(cmd));
+            should(res).be.instanceOf(require("../src/commands/album/removePhotos"));
+            should(res.albumId).equal("12");
+            should(res.photoIds).deepEqual(["3", "2", "4"]);
+            parserAndFakes.checkRes(res);
         });
     });
 
