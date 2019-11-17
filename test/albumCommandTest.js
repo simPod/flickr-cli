@@ -51,24 +51,26 @@ describe("Album command", () => {
     it("should delete albums", async () => {
         const albumids = ["51", "32"];
         const flickr = td.object(["deleteAlbum"]);
-        const config = {};
+        const config = { logger: td.object(['log']) };
         const command = new deleteAlbum(config, flickr, { albumIds: albumids });
 
         await command.exec();
 
         td.verify(flickr.deleteAlbum("51"));
         td.verify(flickr.deleteAlbum("32"));
+        td.verify(config.logger.log("Deleted 2 album(s)"));
     });
 
     it("should remove photos from albums", async () => {
         const albumid = "51";
         const photoIds = ["1", "2"];
         const flickr = td.object(["removePhotosFromSet"]);
-        const config = {};
+        const config = { logger: td.object(['log']) };
         const command = new removePhotos(config, flickr, { albumId: albumid, photoIds });
 
         await command.exec();
 
         td.verify(flickr.removePhotosFromSet("51", "1,2"));
+        td.verify(config.logger.log("Removed 2 photo(s) from album 51"));
     });
 });

@@ -3,6 +3,7 @@ module.exports = class {
         this.flickr = flickr;
         this.albumId = albumId;
         this.photoIds = photoIds;
+        this.config = config;
     }
 
     async exec() {
@@ -10,6 +11,7 @@ module.exports = class {
 
         try {
             await this.flickr.removePhotosFromSet(this.albumId, photoIds);
+            this.config.logger.log(`Removed ${this.photoIds.length} photo(s) from album ${this.albumId}`);
         }
         catch (error) {
             console.error(`Error removing photos from album: ${error}`);

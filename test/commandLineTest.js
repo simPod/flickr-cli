@@ -105,7 +105,7 @@ describe("Command line parser", () => {
         });
         it("should parse album list", () => {
             const parserAndFakes = createParser();
-            const res = parserAndFakes.parser.parse(makeArgv(["album", "list", "1234", "--list", "4567", "-f", "title,id", "--no-headers"]));
+            const res = parserAndFakes.parser.parse(makeArgv(["album", "list", "a", "1234", "--albumid", "4567", "-f", "title,id", "--no-headers"]));
             should(res).be.instanceOf(require("../src/commands/album/list"));
             should(res.albumIds).deepEqual(["1234", "4567"]);
             should(res.format.config.fields).be.deepEqual(["title", "id"]);

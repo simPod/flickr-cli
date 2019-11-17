@@ -33,6 +33,6 @@ describe("Retry", () => {
         const retry = new Retry(4, 10, RetryPolicies.exponential, logger);
         await retry.retry(async () => { throw error; }).should.be.rejectedWith(error);
         (Date.now() - start).should.be.greaterThan(10 + 20 + 40);
-        (Date.now() - start).should.be.below(80);
+        (Date.now() - start).should.be.below(85);
     });
 });

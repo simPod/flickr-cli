@@ -10,7 +10,7 @@ const titleSelector = { name: 'title', alias: 't', type: String, multiple: false
 
 const albumSubcommands = [
     { name: 'index', alias: 'i', type: Boolean },
-    { name: 'list', alias: 'l', type: String, multiple: true, description: "List photos in albums", typeLabel: '[underline]{albumid,albumid}[,albumid...]' },
+    { name: 'list', alias: 'l', type: Boolean, multiple: false, description: "List photos in albums", subcommands: [albumIdsSelector] },
     { name: 'delete', alias: 'd', type: Boolean, multiple: false, subcommands: [albumIdsSelector] },
     { name: 'reorder', alias: 'o', type: String, description: "Reorder albums in the specified order", typeLabel: '[underline]{albumid,albumid}[,albumid...]', multiple: true },
     { name: 'remove', alias: 'r', type: Boolean, multiple: false, description: "Remove photos from album", subcommands: [albumIdSelector, photoIdsSelector] },
@@ -95,7 +95,7 @@ class CommandLineParser {
                 return this.createCommand("album", "index", tableFormat);
             }
             if (album.list) {
-                return this.createCommand("album", "list", tableFormat, { albumIds: this.getIds(album.list) })
+                return this.createCommand("album", "list", tableFormat, { albumIds: this.getIds(album.list.albumid) })
             }
             if (album.rename) {
                 return this.createCommand("album", "rename",
