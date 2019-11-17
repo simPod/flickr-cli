@@ -5,7 +5,7 @@ class Login {
         this.exec = this.exec.bind(this);
     }
 
-    async exec(args) {
+    async exec() {
         const token = await this.flickr.login();
         this.config.logger.log(`Logged in as ${token.fullname}`);
         this.config.setToken(token);

@@ -1,20 +1,18 @@
-const td = require("testdouble");
-const TableFormat = require("../src/utils/TableFormat");
+const TableFormat = require("../src/formatter/TableFormat");
 
 describe("Table formatter", () => {
     const test = (config, expectedFormat) => {
         const entities = [
             { title: "test", id: "123123", description: "prout" },
-            { title: "second", id: "456456", description: "pouet"}
+            { title: "second", id: "456456", description: "pouet" }
         ];
-        const callback = td.function();
-        const formatter = new TableFormat(callback, config);
-        formatter.format(entities);
+        const formatter = new TableFormat(config);
+        const res = formatter.format(entities);
 
-        for(let entity of entities) {
-            td.verify(callback(expectedFormat(entity)));
+        for (let entity of entities) {
+            should(res).containEql(expectedFormat(entity));
         }
-        return callback;
+        return res;
     };
 
     it("should display entities with default field", () => {
@@ -34,29 +32,29 @@ describe("Table formatter", () => {
 
     it("should list entities with headers when fields are specified", async () => {
         const config = { defaultFields: ["title"], fields: ["title", "id"], displayHeaders: true };
-        const callback = test(config, (entity) => `${entity.title}\t${entity.id}`);
-        td.verify(callback("title\tid"));
+        const res = test(config, (entity) => `${entity.title}\t${entity.id}`);
+        should(res[0]).equal("title\tid");
     });
 
     it("should list entities with headers with all fields", async () => {
         const config = { defaultFields: ["title"], fields: ["*"], displayHeaders: true };
-        const callback = test(config, (entity) => `${entity.title}\t${entity.id}\t${entity.description}`);
-        td.verify(callback("title\tid\tdescription"));
+        const res = test(config, (entity) => `${entity.title}\t${entity.id}\t${entity.description}`);
+        should(res[0]).equal("title\tid\tdescription");
     });
 
     it("should list entities without headers with all fields", async () => {
         const config = { defaultFields: ["title"], fields: ["*"], displayHeaders: false };
-        const callback = test(config, (entity) => `${entity.title}\t${entity.id}\t${entity.description}`);
-        td.verify(callback("title\tid\tdescription"), {times: 0});
+        const res = test(config, (entity) => `${entity.title}\t${entity.id}\t${entity.description}`);
+        should(res).not.containEql("title\tid\tdescription");
     });
     it("should list entities with headers by default", async () => {
-        const config = { defaultFields: ["title"], fields: ["*"]};
-        const callback = test(config, (entity) => `${entity.title}\t${entity.id}\t${entity.description}`);
-        td.verify(callback("title\tid\tdescription"), {times: 1});
+        const config = { defaultFields: ["title"], fields: ["*"] };
+        const res = test(config, (entity) => `${entity.title}\t${entity.id}\t${entity.description}`);
+        should(res[0]).equal("title\tid\tdescription");
     });
     it("should list entities with specified separator", async () => {
-        const config = { defaultFields: ["title"], fields: ["*"], separator: ';'};
-        const callback = test(config, (entity) => `${entity.title};${entity.id};${entity.description}`);
-        td.verify(callback("title;id;description"), {times: 1});
+        const config = { defaultFields: ["title"], fields: ["*"], separator: ';' };
+        const res = test(config, (entity) => `${entity.title};${entity.id};${entity.description}`);
+        should(res[0]).equal("title;id;description");
     });
 });

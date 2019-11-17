@@ -1,5 +1,5 @@
 const td = require("testdouble");
-const Login = require("../src/commands/Login");
+const Login = require("../src/commands/login/login.js");
 
 describe("Login command", () => {
     it("should save token", async () => {

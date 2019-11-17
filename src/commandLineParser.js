@@ -1,151 +1,144 @@
-const commandLineArgs = require('command-line-args');
+const yaclip = require('yaclip');
+const commandLineParser = yaclip.commandLineParser;
+const FormatterFactory = require("./formatter/factory");
+
+const fieldSelector = { name: 'fields', alias: "f", type: String, multiple: true };
+const photoIdsSelector = { name: 'photoid', alias: "p", type: String, multiple: true };
+const albumIdsSelector = { name: 'albumid', alias: "a", type: String, multiple: true };
+const albumIdSelector = { name: 'albumid', alias: "a", type: String, multiple: false };
+const titleSelector = { name: 'title', alias: 't', type: String, multiple: false };
+
+const albumSubcommands = [
+    { name: 'index', alias: 'i', type: Boolean },
+    { name: 'list', alias: 'l', type: Boolean, multiple: false, description: "List photos in albums", subcommands: [albumIdsSelector] },
+    { name: 'delete', alias: 'd', type: Boolean, multiple: false, subcommands: [albumIdsSelector] },
+    { name: 'reorder', alias: 'o', type: String, description: "Reorder albums in the specified order", typeLabel: '[underline]{albumid,albumid}[,albumid...]', multiple: true },
+    { name: 'remove', alias: 'r', type: Boolean, multiple: false, description: "Remove photos from album", subcommands: [albumIdSelector, photoIdsSelector] },
+    { name: 'rename', alias: 'n', type: Boolean, multiple: false, description: "Rename album", subcommands: [albumIdSelector, titleSelector] },
+]
 
 const optionDefinitions = [
     { name: 'help', description: "Prints this message", alias: 'h', type: Boolean },
     { name: 'login', description: "Initiate login process", alias: 'l', type: Boolean },
+    { name: 'album', description: "CRUD for albums", alias: "a", type: Boolean, subcommands: albumSubcommands },
     { name: 'upload', description: "Upload files", typeLabel: '[underline]{file} [file...]', alias: 'u', type: String, multiple: true },
-    { name: 'album', description: "CRUD for albums", alias: "a", type: String, multiple: true },
-    { name: 'fields', alias: "f", type: String, multiple: true },
-    { name: 'noheaders', description: "Do not include headers in a list command", alias: "H", type: Boolean },
-    { name: 'separator', description: "Specify row separator", alias: "s", type: String, multiple: false },
-    { name: 'albumid', type: String, multiple: false },
-    { name: 'albumids', type: String, multiple: true },
-    { name: 'photoids', type: String, multiple: true },
-    { name: 'title', type: String, multiple: false }
+    { name: 'no-headers', description: "Do not include headers in a list command", alias: "H", type: Boolean },
+    { name: 'separator', description: "Specify column separator", alias: "s", type: String, multiple: false },
+    { name: 'field', description: "Select fields to be displayed", typeLabel: '[underline]{field name} [field name...]', alias: "f", type: String, multiple: true },
 ];
 
-Commands = {
-    Album: "album",
-    Help: "help",
-    Login: "login",
-    Upload: "upload",
-    Unknown: "Unknown"
-};
-
 class CommandLineParser {
-    constructor() {
-        this.getTableFormatOptions = this.getTableFormatOptions.bind(this);
+    constructor(config, flickr) {
+        this.flickr = flickr;
+        this.config = config;
         this.parse = this.parse.bind(this);
         this.parseAlbum = this.parseAlbum.bind(this);
         this.parseHelp = this.parseHelp.bind(this);
         this.parseLogin = this.parseLogin.bind(this);
         this.parseUpload = this.parseUpload.bind(this);
-        this.parseSubcommands = this.parseSubcommands.bind(this);
+        this.createCommand = this.createCommand.bind(this);
 
-        this.makeRes = this.makeRes.bind(this);
         this.parsers = [
             this.parseAlbum,
             this.parseHelp,
             this.parseLogin,
             this.parseUpload,
         ];
+
+        this.parser = commandLineParser(optionDefinitions, { dashesAreOptional: true });
     }
 
     getOptions() {
         return optionDefinitions;
     }
 
-    makeRes(command, params) {
-        return {
-            command,
-            params: params || {}
-        }
+    createCommand(command, subcommand, ...params) {
+        const CommandClass = require(`./commands/${command}/${subcommand}.js`);
+        const commandObject = new CommandClass(this.config, this.flickr, ...params);
+        return commandObject;
+    }
+
+    getIds(fields) {
+        return fields.map(field => {
+            if (field.value.indexOf(",") >= 0) {
+                return field.value.split(",");
+            } else {
+                return [field.value];
+            }
+        }).reduce((arr, curr) => arr.concat(curr), []);
     }
 
     parseHelp(args) {
         if (args.help) {
-            return this.makeRes(Commands.Help);
+            return this.createCommand("help", "help");
         }
         return null;
     }
 
-    parseLogin(args) {
+    parseLogin(args, tableFormat) {
         if (args.login) {
-            return this.makeRes(Commands.Login);
+            return this.createCommand("login", "login", tableFormat);
         }
     }
 
     parseUpload(args) {
         if (args.upload) {
-            const params = { files: args.upload, albums: args.addToAlbum };
-            return this.makeRes(Commands.Upload, params);
+            const params = { files: this.getIds(args.upload), albums: args.addToAlbum };
+            return this.createCommand("upload", "upload", params);
         }
     }
 
-    getTableFormatOptions(args) {
-        const fields = args.fields || [];
-        const separator = args.separator;
-        const headers = args.noheaders !== true;
-        return {
-            fields,
-            separator,
-            headers
-        }
-    }
-
-    removeDashes(str) {
-        while (str[0] === '-') {
-            str = str.slice(1);
-        }
-        return str;
-    }
-
-    parseSubcommands(args, params) {
-        while (args.length > 0) {
-            const field = this.removeDashes(args.shift());
-            const value = args.shift();
-            params[field] = value;
-        }
-    }
-
-    parseAlbum(args) {
+    parseAlbum(args, tableFormat) {
         if (args.album) {
-            const command = args.album.shift();
-            let params = {
-                command
-            };
-            if (command === "index" || command === "list" || command === "reorder" || command === "delete") {
-                params.albumid = args.album || args.albumids || args.albumid;
-                params.tableFormatOptions = this.getTableFormatOptions(args);
+            const album = args.album;
+            if (album.index) {
+                return this.createCommand("album", "index", tableFormat);
             }
-            if (command === "remove") {
-                params.albumid = args.albumid || args.album.shift();
-                params.photoids = args.photoids;
+            if (album.list) {
+                return this.createCommand("album", "list", tableFormat, { albumIds: this.getIds(album.list.albumid) })
             }
-            if (command === "rename") {
-                params.albumid = args.albumid;
-                params.title = args.title;
-                //this.parseSubcommands(args.album, params);
+            if (album.rename) {
+                return this.createCommand("album", "rename",
+                    { albumId: album.rename.albumid.value, title: album.rename.title.value })
             }
-            return this.makeRes(Commands.Album, params);
+            if (album.reorder) {
+                return this.createCommand("album", "reorder",
+                    { albumIds: this.getIds(album.reorder) })
+            }
+            if (album.remove) {
+                return this.createCommand("album", "removePhotos",
+                    { albumId: album.remove.albumid.value, photoIds: this.getIds(album.remove.photoid) })
+            }
+            if (album.delete) {
+                return this.createCommand("album", "delete",
+                    { albumIds: this.getIds(album.delete.albumid) })
+            }
+            throw new Error(`Not implemented: album.${album}`);
         }
     }
 
-    addDashIfMissing(argv) {
-        if (argv[2] && argv[2].length > 2 && !argv[2].startsWith("--")) {
-            argv[2] = "--" + argv[2];
+    getFormatter(parsedOptions, parse = false) {
+        if (parse) {
+            parsedOptions = this.parser(parsedOptions.slice(2));
         }
-        return argv;
+        const factory = new FormatterFactory();
+        return factory.getFormatter("table", parsedOptions);
     }
 
     parse(argv = process.argv) {
-        if (argv.length < 3) {
-            return this.makeRes(Commands.Unknown, { unknown: [""] });
+        if (argv.length <= 2) {
+            throw new Error("No parameters were given");
         }
-        argv = this.addDashIfMissing(argv);
-        const options = { argv, partial: true };
-        const args = commandLineArgs(optionDefinitions, options);
+        const args = this.parser(argv.slice(2));
+        const tableFormat = this.getFormatter(args);
         for (const parser of this.parsers) {
-            const res = parser(args);
+            const res = parser(args, tableFormat);
             if (res) {
                 return res;
             }
         }
-        return this.makeRes(Commands.Unknown, { unknown: args._unknown });
+        throw new Error(`Command unknown: ${argv.join(" ")}`)
     }
 }
 
-module.exports = {
-    CommandLineParser: CommandLineParser,
-    Commands: Commands
-};
+module.exports = CommandLineParser;

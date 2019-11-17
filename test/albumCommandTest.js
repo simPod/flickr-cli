@@ -1,5 +1,10 @@
 const td = require("testdouble");
-const Album = require("../src/commands/Album");
+const index = require("../src/commands/album/index.js");
+const list = require("../src/commands/album/list.js");
+const rename = require("../src/commands/album/rename.js");
+const reorder = require("../src/commands/album/reorder.js");
+const deleteAlbum = require("../src/commands/album/delete.js");
+const removePhotos = require("../src/commands/album/removePhotos.js");
 
 describe("Album command", () => {
     it("should index albums with title by default", async () => {
@@ -10,62 +15,14 @@ describe("Album command", () => {
         const flickr = {
             listAlbums: async () => albums
         };
-        const config = { logger: td.object(["log"]) };
-        const album = new Album(config, flickr);
-        await album.exec({ command: Album.Commands.Index, tableFormatOptions: {} });
+        const config = { logger: td.object("log") };
+        const formatter = td.object(["format"]);
+        td.when(formatter.format(albums)).thenReturn(["123123", "456456"])
 
-        for (let album of albums) {
-            td.verify(config.logger.log(album.title));
-        }
-    });
+        const command = new index(config, flickr, formatter);
+        await command.exec();
 
-    it("should index albums with specified fields", async () => {
-        const albums = [
-            { title: "test", id: "123123" },
-            { title: "second", id: "456456" }
-        ];
-        const flickr = {
-            listAlbums: async () => albums
-        };
-        const config = { logger: td.object(["log"]) };
-
-        const album = new Album(config, flickr);
-        await album.exec({ command: Album.Commands.Index, tableFormatOptions: { fields: ["title", "id"] } });
-
-        for (let album of albums) {
-            td.verify(config.logger.log(`${album.title}\t${album.id}`));
-        }
-    });
-
-    it("should list content of an album with specified fields", async () => {
-        const pics = {
-            "1234": [
-                { title: "bla", id: "21314" },
-                { title: "blerh", id: "p2953405" }
-            ],
-            "5678": [
-                { title: "lsdkfs", id: "1242" }
-            ],
-            "20943": [
-                { title: "dsfsdfg", id: "03ktgo" }
-            ]
-        };
-        const flickr = {
-            getAlbumContent: async (albumid) => pics[albumid]
-        };
-        const config = { logger: td.object(["log"]) };
-
-        const album = new Album(config, flickr);
-        await album.exec({ command: Album.Commands.List, albumid: ["1234", "5678"], tableFormatOptions: { fields: '*', separator: ' ' } });
-
-        for (let photo of pics["1234"]) {
-            td.verify(config.logger.log(`${photo.title} ${photo.id}`))
-        }
-
-        for (let photo of pics["5678"]) {
-            td.verify(config.logger.log(`${photo.title} ${photo.id}`))
-        }
-        td.verify(config.logger.log("title id"), { times: 1 })
+        td.verify(config.logger.log("123123\n456456"));
     });
 
     it("should rename album", async () => {
@@ -73,10 +30,8 @@ describe("Album command", () => {
         const title = "newname"
         const flickr = td.object(["renameAlbum"]);
         const config = {};
-        const album = new Album(config, flickr);
-
-        await album.exec({ command: Album.Commands.Rename, albumid: albumid, title: title });
-
+        const album = new rename(config, flickr, { albumId: albumid, title: title });
+        await album.exec();
         td.verify(flickr.renameAlbum(albumid, title));
     });
 
@@ -85,34 +40,37 @@ describe("Album command", () => {
         const albumids = [1, 3, 2, 4];
         const flickr = td.object(["reorderAlbums"]);
         const config = {};
-        const album = new Album(config, flickr);
+        const command = new reorder(config, flickr, { albumIds: albumids });
 
-        await album.exec({ command: Album.Commands.Reorder, albumid: albumids });
+        await command.exec();
 
         td.verify(flickr.reorderAlbums("1,3,2,4"));
     });
 
 
     it("should delete albums", async () => {
-        const albumid = "51";
+        const albumids = ["51", "32"];
         const flickr = td.object(["deleteAlbum"]);
-        const config = {};
-        const album = new Album(config, flickr);
+        const config = { logger: td.object(['log']) };
+        const command = new deleteAlbum(config, flickr, { albumIds: albumids });
 
-        await album.exec({ command: Album.Commands.Delete, albumid: albumid });
+        await command.exec();
 
         td.verify(flickr.deleteAlbum("51"));
+        td.verify(flickr.deleteAlbum("32"));
+        td.verify(config.logger.log("Deleted 2 album(s)"));
     });
 
     it("should remove photos from albums", async () => {
         const albumid = "51";
         const photoIds = ["1", "2"];
         const flickr = td.object(["removePhotosFromSet"]);
-        const config = {};
-        const album = new Album(config, flickr);
+        const config = { logger: td.object(['log']) };
+        const command = new removePhotos(config, flickr, { albumId: albumid, photoIds });
 
-        await album.exec({ command: Album.Commands.Remove, albumid: albumid, photoids: photoIds });
+        await command.exec();
 
         td.verify(flickr.removePhotosFromSet("51", "1,2"));
+        td.verify(config.logger.log("Removed 2 photo(s) from album 51"));
     });
 });
